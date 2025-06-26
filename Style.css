@@ -67,34 +67,44 @@
   }
   /* Adicione ao final do seu CSS existente */
 
-.btn-info {
-    background-color: #0dcaf0;
-    border-color: #0dcaf0;
+.bt/* Ajustes para o topo de pesquisa */
+.d-flex.flex-wrap.gap-2 {
+    gap: 0.5rem !important;
+    align-items: center;
 }
 
-.btn-info:hover {
-    background-color: #0bb6d9;
-    border-color: #0aa8c7;
+/* Botão de filtrar */
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
 }
 
-.badge {
-    font-size: 0.8em;
-    padding: 0.35em 0.65em;
-    font-weight: 500;
-}
-
-/* Melhorias para o botão de filtro */
-.btn-filter {
-    transition: all 0.3s ease;
-}
-
-.btn-filter.active {
+.btn-outline-primary:hover, 
+.btn-outline-primary.active {
+    color: #fff;
     background-color: #0d6efd;
     border-color: #0d6efd;
 }
 
-/* Espaçamento para os badges */
-.card-text .badge {
-    margin-right: 5px;
-    margin-bottom: 5px;
+/* Checkboxes */
+input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Botão de apagar selecionadas */
+#btnApagarSelecionadas {
+    transition: all 0.3s ease;
+}
+
+/* Ajuste para tabela */
+.table-responsive {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Mantendo o estilo original dos badges */
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
 }
