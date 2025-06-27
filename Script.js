@@ -68,8 +68,7 @@ function limparCamposProduto() {
     document.getElementById('validade').value = "";
     document.getElementById('obsProduto').value = "";
 }
-
-async function carregarProdutos(filtroValidade = false) {
+async function carregarProdutos(ordenarPorValidade = false) {
     const busca = document.getElementById('filtroBusca').value.toLowerCase();
     const marcaFiltro = document.getElementById('filtroMarca').value;
     const container = document.getElementById("tabelaEstoque");
@@ -77,6 +76,7 @@ async function carregarProdutos(filtroValidade = false) {
 
     const snapshot = await query.get();
     container.innerHTML = "";
+    let listaFiltrada = [];
 
     snapshot.forEach(doc => {
         const p = doc.data();
@@ -92,65 +92,75 @@ async function carregarProdutos(filtroValidade = false) {
             mostrar = false;
         }
 
-        if (filtroValidade && p.validade) {
-            const dataValidade = new Date(p.validade);
-            if (dataValidade > hoje) {
-                mostrar = false;
-            }
-        }
-
         if (mostrar) {
-            const alerta = p.quantidade <= p.estoqueMinimo ? '<span class="badge bg-danger">Baixo estoque</span>' : '';
-            let validadeInfo = '';
-
-            if (p.validade) {
-                const dataValidade = new Date(p.validade);
-                const diffTime = dataValidade - hoje;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays < 0) {
-                    validadeInfo = `<span class="badge bg-danger">Vencido há ${Math.abs(diffDays)} dias</span>`;
-                } else if (diffDays <= 30) {
-                    validadeInfo = `<span class="badge bg-warning text-dark">Vence em ${diffDays} dias</span>`;
-                } else {
-                    validadeInfo = `<span class="badge bg-success">Válido até ${dataValidade.toLocaleDateString('pt-BR')}</span>`;
-                }
-            }
-
-            container.innerHTML += `
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">${p.nome}</h5>
-                            <p class="card-text">
-                                Marca: ${p.marca}<br>
-                                Preço: R$ ${p.preco.toFixed(2)}<br>
-                                Qtd: ${p.quantidade} ${alerta}<br>
-                                ${validadeInfo}
-                            </p>
-                            <button class="btn btn-sm btn-warning" onclick="editarProduto('${p.nome}')">Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="deletarProduto('${p.nome}')">Excluir</button>
-                        </div>
-                    </div>
-                </div>`;
+            // Adiciona a validade como Date para ordenação
+            p._dataValidade = p.validade ? new Date(p.validade) : new Date(8640000000000000); // data futura para quem não tem validade
+            listaFiltrada.push(p);
         }
+    });
+
+    // Se o botão foi clicado para ordenar por validade
+    if (ordenarPorValidade) {
+        listaFiltrada.sort((a, b) => a._dataValidade - b._dataValidade);
+    }
+
+    // Renderiza os produtos
+    const hoje = new Date();
+    listaFiltrada.forEach(p => {
+        const alerta = p.quantidade <= p.estoqueMinimo ? '<span class="badge bg-danger">Baixo estoque</span>' : '';
+        let validadeInfo = '';
+
+        if (p.validade) {
+            const dataValidade = new Date(p.validade);
+            const diffTime = dataValidade - hoje;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                validadeInfo = `<span class="badge bg-danger">Vencido há ${Math.abs(diffDays)} dias</span>`;
+            } else if (diffDays <= 30) {
+                validadeInfo = `<span class="badge bg-warning text-dark">Vence em ${diffDays} dias</span>`;
+            } else {
+                validadeInfo = `<span class="badge bg-success">Válido até ${dataValidade.toLocaleDateString('pt-BR')}</span>`;
+            }
+        }
+
+        container.innerHTML += `
+            <div class="col-12 col-sm-6 col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">${p.nome}</h5>
+                        <p class="card-text">
+                            Marca: ${p.marca}<br>
+                            Preço: R$ ${p.preco.toFixed(2)}<br>
+                            Qtd: ${p.quantidade} ${alerta}<br>
+                            Descrição: ${p.obs || "Sem descrição"}<br>
+                            ${validadeInfo}
+                        </p>
+                        <button class="btn btn-sm btn-warning" onclick="editarProduto('${p.nome}')">Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletarProduto('${p.nome}')">Excluir</button>
+                    </div>
+                </div>
+            </div>`;
     });
 }
 
+
 function filtrarPorValidade() {
     const btn = event.target;
-    const estaFiltrado = btn.classList.contains('btn-primary');
+    const estaOrdenado = btn.classList.contains('btn-primary');
 
-    if (estaFiltrado) {
+    if (estaOrdenado) {
         btn.classList.remove('btn-primary');
         btn.classList.add('btn-info');
-        carregarProdutos(false);
+        carregarProdutos(false); // ordem padrão
     } else {
         btn.classList.remove('btn-info');
         btn.classList.add('btn-primary');
-        carregarProdutos(true);
+        carregarProdutos(true); // ordenar por validade
     }
 }
+
+
 function buscarProdutoVenda() {
     const termo = document.getElementById('buscaVenda').value.toLowerCase();
     const select = document.getElementById("produtoVenda");
